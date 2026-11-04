@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/download_item.dart';
 import '../services/download_service.dart';
-import '../services/cobalt_service.dart';
 import '../widgets/download_card.dart';
 import 'downloads_screen.dart';
 import 'settings_screen.dart';
@@ -26,7 +25,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   List<DownloadItem> _recentDownloads = [];
 
   late AnimationController _pulseController;
-  late Animation<double> _pulseAnimation;
 
   final List<String> _qualities = ['1080', '720', '480', '360', '240', '144'];
 
@@ -50,9 +48,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       vsync: this,
       duration: const Duration(seconds: 2),
     )..repeat(reverse: true);
-    _pulseAnimation = Tween<double>(begin: 0.95, end: 1.05).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
-    );
 
     _downloadService.onDownloadUpdated = (item) {
       if (mounted) setState(() {

@@ -40,9 +40,6 @@ class _DownloadsScreenState extends State<DownloadsScreen>
         d.status == DownloadStatus.downloading ||
         d.status == DownloadStatus.queued).toList();
     final completed = all.where((d) => d.status == DownloadStatus.completed).toList();
-    final failed = all.where((d) =>
-        d.status == DownloadStatus.failed ||
-        d.status == DownloadStatus.paused).toList();
 
     return Scaffold(
       appBar: AppBar(
