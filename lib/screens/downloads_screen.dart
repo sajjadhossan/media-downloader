@@ -34,7 +34,6 @@ class _DownloadsScreenState extends State<DownloadsScreen>
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final all = _downloadService.downloads;
     final active = all.where((d) =>
         d.status == DownloadStatus.downloading ||
