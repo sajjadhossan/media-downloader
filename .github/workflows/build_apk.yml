@@ -1,0 +1,93 @@
+name: Build & Release APK
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Get Flutter Dependencies
+        run: flutter pub get
+
+      - name: Analyze Code
+        run: flutter analyze --no-fatal-infos
+        continue-on-error: true
+
+      - name: Build APK (Release)
+        run: flutter build apk --release --split-per-abi
+
+      - name: Build Universal APK
+        run: flutter build apk --release
+
+      - name: Upload APK Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: MediaDownloader-APK
+          path: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+            build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
+          retention-days: 30
+
+      - name: Get Version
+        id: version
+        run: echo "version=$(grep 'version:' pubspec.yaml | awk '{print $2}')" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: "Media Downloader v${{ steps.version.outputs.version }}"
+          body: |
+            ## 📱 Media Downloader APK
+            
+            ### সাপোর্টেড প্ল্যাটফর্ম:
+            - ✅ YouTube (Video/Shorts/Audio)
+            - ✅ TikTok (ওয়াটারমার্ক ছাড়া)
+            - ✅ Instagram (Reels/Posts)
+            - ✅ Facebook
+            - ✅ Twitter/X
+            - ✅ Terabox
+            - ✅ Reddit, Vimeo, Twitch
+            - ✅ ১০০০+ সাইট
+            
+            ### APK ডাউনলোড:
+            - **arm64-v8a** → নতুন ফোনের জন্য (বেশিরভাগ ফোন)
+            - **armeabi-v7a** → পুরনো ফোনের জন্য
+            - **Universal** → সব ফোনের জন্য (বড় সাইজ)
+            
+            ### ইনস্টল করুন:
+            1. APK ডাউনলোড করুন
+            2. Settings → Unknown sources → Allow
+            3. APK ফাইল খুলুন → Install
+          files: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+            build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
