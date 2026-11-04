@@ -39,19 +39,18 @@ jobs:
         continue-on-error: true
 
       - name: Build APK (Release)
-        run: flutter build apk --release --split-per-abi
-
-      - name: Build Universal APK
-        run: flutter build apk --release
+        run: |
+          mkdir -p release-apks
+          flutter build apk --release --split-per-abi
+          cp build/app/outputs/flutter-apk/*.apk release-apks/
+          flutter build apk --release
+          cp build/app/outputs/flutter-apk/app-release.apk release-apks/
 
       - name: Upload APK Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: MediaDownloader-APK
-          path: |
-            build/app/outputs/flutter-apk/app-release.apk
-            build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
-            build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
+          path: release-apks/*.apk
           retention-days: 30
 
       - name: Get Version
@@ -78,18 +77,15 @@ jobs:
             - ✅ ১০০০+ সাইট
             
             ### APK ডাউনলোড:
-            - **arm64-v8a** → নতুন ফোনের জন্য (বেশিরভাগ ফোন)
-            - **armeabi-v7a** → পুরনো ফোনের জন্য
-            - **Universal** → সব ফোনের জন্য (বড় সাইজ)
+            - **app-arm64-v8a-release.apk** → নতুন ফোনের জন্য (বেশিরভাগ ফোন)
+            - **app-armeabi-v7a-release.apk** → পুরনো ফোনের জন্য
+            - **app-release.apk** → Universal (সব ফোনের জন্য)
             
             ### ইনস্টল করুন:
             1. APK ডাউনলোড করুন
             2. Settings → Unknown sources → Allow
             3. APK ফাইল খুলুন → Install
-          files: |
-            build/app/outputs/flutter-apk/app-release.apk
-            build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
-            build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
+          files: release-apks/*.apk
           draft: false
           prerelease: false
         env:
